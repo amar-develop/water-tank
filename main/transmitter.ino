@@ -9,6 +9,8 @@ float absolute_current_distance = 0;
 float difference_distance = 0;
 float transmitted = 0;
 int looping = 15;
+int reading_count = 0;
+int two_minutes = 8;
 
 void setup() {
   Serial.begin(115200);
@@ -24,18 +26,64 @@ void loop() {
   digitalWrite(trigpin, LOW);
   duration = pulseIn(echopin,HIGH);
   distance = duration*0.034/2;
-  combined_distance = combined_distance + distance;
-  Serial.println(distance);
-  looping=looping-1;
+  if(transmitted==0){
+    combined_distance = combined_distance + distance;
+    reading_count=reading_count+1;
+  }
+
+
+  float percentage_difference = (abs(distance - transmitted) / ((distance + transmitted) / 2.0)) * 100;
+//   Serial.println("percentage_difference:");
+//   Serial.println(percentage_difference);
+  if(percentage_difference<3){  //if readings are transmitted every 15 seconds difference should not be more than 2%
+    combined_distance = combined_distance + distance;
+    reading_count=reading_count+1;
+  }
+  
+//  Serial.println(distance);
   if (looping<1){
+    // Serial.println("Last Transmitted:");
+    // Serial.println(transmitted);
     looping=15;
-    current_distance = combined_distance/looping;
+    current_distance = combined_distance/reading_count;
     absolute_current_distance = abs(current_distance);
-    difference_distance = transmitted - absolute_current_distance;
-    combined_distance = 0;
-//  Serial.println("COMBINED DISTANCE");
-    Serial.println(transmitted);    
+    float transmit_percentage_difference = (abs(absolute_current_distance - transmitted) / ((absolute_current_distance + transmitted) / 2.0)) * 100;
+//     Serial.println("transmit_percentage_difference:");
+//     Serial.println(transmit_percentage_difference);    
+    if(transmit_percentage_difference < 1.5 && transmit_percentage_difference > 0.3){
+      transmitted = absolute_current_distance;
+      // Serial.println("Absolute DISTANCE");
+      Serial.println(transmitted);
+      two_minutes=8;   //resetting the two minute counter if data transmitted
     }
+    else if(transmitted==0){
+      transmitted = absolute_current_distance; // We are not transmitting, just setting transmitted to a referencable value.
+      // Serial.println("Initial DISTANCE");
+      Serial.println(transmitted);
+      two_minutes=8; //resetting the two minute counter if data transmitted
+    }
+    else if(two_minutes<1){
+      transmitted = absolute_current_distance; // We are not transmitting, just setting transmitted to a referencable value.
+      if (isnan(transmitted)) {       //if reading is totally out of specs we reset the caliberation.
+        // Serial.println("Resetting / Re-Caliberating");
+        transmitted=0;
+      } 
+      else {
+        // Serial.println("Every Two Minute Transmission");
+        Serial.println(transmitted);
+        // Serial.println("combined_distance");
+        // Serial.println(combined_distance);
+        // Serial.println("reading_count");
+        // Serial.println(reading_count);
+        two_minutes=8;
+      }
+      
+    }
+    two_minutes=two_minutes-1;
+    combined_distance = 0;
+    reading_count = 0;   
+    }  
+  looping=looping-1;
   digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
   delay(50);                      // Wait for a second
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
