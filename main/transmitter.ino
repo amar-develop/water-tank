@@ -1,4 +1,4 @@
-
+// changing the difference from percentage to cm
 const int trigpin = 14;
 const int echopin = 12;
 long duration;
@@ -11,6 +11,10 @@ float transmitted = 0;
 int looping = 15;
 int reading_count = 0;
 int two_minutes = 8;
+
+
+
+// average refill rate is about 0.25cm per minute
 
 void setup() {
   Serial.begin(115200);
@@ -32,10 +36,10 @@ void loop() {
   }
 
 
-  float percentage_difference = (abs(distance - transmitted) / ((distance + transmitted) / 2.0)) * 100;
+  float cm_difference = (abs(distance - transmitted));
 //   Serial.println("percentage_difference:");
 //   Serial.println(percentage_difference);
-  if(percentage_difference<3){  //if readings are transmitted every 15 seconds difference should not be more than 2%
+  if(cm_difference<1){  //if readings are transmitted every 15 seconds difference should not be more than 1cm
     combined_distance = combined_distance + distance;
     reading_count=reading_count+1;
   }
@@ -47,10 +51,10 @@ void loop() {
     looping=15;
     current_distance = combined_distance/reading_count;
     absolute_current_distance = abs(current_distance);
-    float transmit_percentage_difference = (abs(absolute_current_distance - transmitted) / ((absolute_current_distance + transmitted) / 2.0)) * 100;
+    float transmit_cm_difference = (abs(absolute_current_distance - transmitted));
 //     Serial.println("transmit_percentage_difference:");
 //     Serial.println(transmit_percentage_difference);    
-    if(transmit_percentage_difference < 1.5 && transmit_percentage_difference > 0.3){
+    if(transmit_cm_difference < 1 && transmit_cm_difference > 0.3){
       transmitted = absolute_current_distance;
       // Serial.println("Absolute DISTANCE");
       Serial.println(transmitted);
