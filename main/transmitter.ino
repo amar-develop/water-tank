@@ -1,80 +1,47 @@
-//https://www.circuitbasics.com/how-to-make-an-arduino-capacitance-meter/
 
+const int trigpin = 14;
+const int echopin = 12;
+long duration;
+float distance;
+float combined_distance = 0;
+float current_distance = 0;
+float absolute_current_distance = 0;
+float difference_distance = 0;
+float transmitted = 0;
+int looping = 15;
 
-const int OUT_PIN = PA4;
-const int IN_PIN = PA5;
-const float IN_STRAY_CAP_TO_GND = 24.48;
-const float IN_CAP_TO_GND  = IN_STRAY_CAP_TO_GND;
-const float R_PULLUP = 34.8;  
-//const int MAX_ADC_VALUE = 1023;
-const int MAX_ADC_VALUE = 4095;
-
-void setup(){
-  pinMode(OUT_PIN, OUTPUT);
-  pinMode(IN_PIN, OUTPUT);
+void setup() {
   Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  pinMode(echopin, INPUT);     // GPIO 12 Input ECHO Pin
+  pinMode(trigpin, OUTPUT);     // GPIO 14 Output TRIG Pin
 }
 
-void loop(){
-    pinMode(IN_PIN, INPUT);
-    digitalWrite(OUT_PIN, HIGH);
-    int val = analogRead(IN_PIN);
-    digitalWrite(OUT_PIN, LOW);
-
-    if (val < 3950){
-      pinMode(IN_PIN, OUTPUT);
-
-      float capacitance = (float)val * IN_CAP_TO_GND / (float)(MAX_ADC_VALUE - val);
-
-      Serial.print(F("Capacitance Value = "));
-      Serial.print(capacitance, 3);
-      Serial.print(F(" pF ("));
-      Serial.print(val);
-      Serial.println(F(") "));
-    }
-
-    else{
-      pinMode(IN_PIN, OUTPUT);
-      delay(1);
-      pinMode(OUT_PIN, INPUT_PULLUP);
-      unsigned long u1 = micros();
-      unsigned long t;
-      int digVal;
-
-      do{
-        digVal = digitalRead(OUT_PIN);
-        unsigned long u2 = micros();
-        t = u2 > u1 ? u2 - u1 : u1 - u2;
-      } while ((digVal < 1) && (t < 400000L));
-
-      pinMode(OUT_PIN, INPUT);  
-      val = analogRead(OUT_PIN);
-      digitalWrite(IN_PIN, HIGH);
-      int dischargeTime = (int)(t / 1000L) * 5;
-      delay(dischargeTime);   
-      pinMode(OUT_PIN, OUTPUT);  
-      digitalWrite(OUT_PIN, LOW);
-      digitalWrite(IN_PIN, LOW);
-
-      float capacitance = -(float)t / R_PULLUP / log(1.0 - (float)val / (float)MAX_ADC_VALUE);
-
-      Serial.print(F("Capacitance Value1 = "));
-      if (capacitance > 1000.0){
-        Serial.print(capacitance / 1000.0, 3);
-        Serial.print(F(" uF"));
+// the loop function runs over and over again forever
+void loop() {
+  digitalWrite(trigpin, HIGH);
+  delayMicroseconds (15);
+  digitalWrite(trigpin, LOW);
+  duration = pulseIn(echopin,HIGH);
+  distance = duration*0.034/2;
+  combined_distance = combined_distance + distance;
+//  Serial.println(distance);
+  looping=looping-1;
+  if (looping<1){
+    looping=15;
+    current_distance = combined_distance/looping;
+    absolute_current_distance = abs(current_distance);
+    difference_distance = transmitted - absolute_current_distance;
+    if (difference_distance > 0.3){             // if the difference in water level is 0.3mm we make a entry
+      transmitted = absolute_current_distance;
+      Serial.println(transmitted); //sending data to serial for broadcast
       }
-      else{
-        Serial.print(capacitance, 3);
-        Serial.print(F(" nF"));
-      }
-// Commented extra code that was not needed
-      Serial.print(F(" ("));
-      Serial.print(digVal == 1 ? F("Normal") : F("HighVal"));
-      Serial.print(F(", t= "));
-      Serial.print(t);
-      Serial.print(F(" us, ADC= "));
-      Serial.print(val);
-      Serial.println(F(")"));
+    combined_distance = 0;
+//  Serial.println("COMBINED DISTANCE");
+    Serial.println(transmitted);    
     }
-    delay(1000);    
+  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
+  delay(50);                      // Wait for a second
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  delay(950);                      // Wait for two seconds (to demonstrate the active low LED)
 }
