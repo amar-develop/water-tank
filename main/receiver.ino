@@ -15,6 +15,7 @@
 
 const char* ssid = "Artha Penn";
 const char* password = "s123456789";
+String value="0";
 
 //Your Domain name with URL path or IP address with path
 const char* serverName = "http://bhupali.000webhostapp.com";
@@ -43,9 +44,17 @@ void setup() {
   Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
 }
 
-void loop() {
+void loop() {  
+  
   //Send an HTTP POST request every timerDelay seconds
   if ((millis() - lastTime) > timerDelay) {
+     if(Serial.available()>0)    //Checks is there any data in buffer 
+          {
+            //char value = Serial.read();
+            value =Serial.readString();
+            Serial.print("Reading:");
+            Serial.print(value);  //Read serial data byte and send back to serial monitor
+          }
     //Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED){
       WiFiClient client;
@@ -60,18 +69,11 @@ void loop() {
       // Specify content-type header
       http.addHeader("Content-Type", "application/x-www-form-urlencoded");
       // Data to send with HTTP POST
-      String httpRequestData = "api_key=tPmAT5Ab3j7F9&level=58";           
+      String httpRequestData = "api_key=tPmAT5Ab3j7F9&level=" + value;
+      Serial.print(httpRequestData);           
       // Send HTTP POST request
       int httpResponseCode = http.POST(httpRequestData);
-      
-      // If you need an HTTP request with a content type: application/json, use the following:
-      //http.addHeader("Content-Type", "application/json");
-      //int httpResponseCode = http.POST("{\"api_key\":\"tPmAT5Ab3j7F9\",\"sensor\":\"BME280\",\"value1\":\"24.25\",\"value2\":\"49.54\",\"value3\":\"1005.14\"}");
-
-      // If you need an HTTP request with a content type: text/plain
-      //http.addHeader("Content-Type", "text/plain");
-      //int httpResponseCode = http.POST("Hello, World!");
-     
+           
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
         
