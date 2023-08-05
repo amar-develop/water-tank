@@ -25,17 +25,13 @@ void loop() {
   duration = pulseIn(echopin,HIGH);
   distance = duration*0.034/2;
   combined_distance = combined_distance + distance;
-//  Serial.println(distance);
+  Serial.println(distance);
   looping=looping-1;
   if (looping<1){
     looping=15;
     current_distance = combined_distance/looping;
     absolute_current_distance = abs(current_distance);
     difference_distance = transmitted - absolute_current_distance;
-    if (difference_distance > 0.3){             // if the difference in water level is 0.3mm we make a entry
-      transmitted = absolute_current_distance;
-      Serial.println(transmitted); //sending data to serial for broadcast
-      }
     combined_distance = 0;
 //  Serial.println("COMBINED DISTANCE");
     Serial.println(transmitted);    
