@@ -1,5 +1,6 @@
 /*
   Connect to WIFI and wait for serial input, If serial input recived, post data to server.
+  Update the Db table name : name = db_table_name in the post request for every device.
 */
 
 #include <ESP8266WiFi.h>
@@ -11,7 +12,7 @@ const char* password = "s123456789";
 String value="0";
 
 //Your Domain name with URL path or IP address with path
-const char* serverName = "http://bhupali.000webhostapp.com";
+const char* serverName = "http://val.lcom.in/upload.php";
 
 void setup() {
   Serial.begin(115200);
@@ -44,7 +45,7 @@ void loop() {
               // Specify content-type header
               http.addHeader("Content-Type", "application/x-www-form-urlencoded");
               // Data to send with HTTP POST
-              String httpRequestData = "api_key=tPmAT5Ab3j7F9&level=" + value;       
+              String httpRequestData = "name=B2&level=" + value;       
               // Send HTTP POST request
               int httpResponseCode = http.POST(httpRequestData);
                    

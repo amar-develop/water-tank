@@ -21,7 +21,7 @@ void loop(){
     int val = analogRead(IN_PIN);
     digitalWrite(OUT_PIN, LOW);
 
-    if (val < 3500){
+    if (val < 3950){
       pinMode(IN_PIN, OUTPUT);
 
       float capacitance = (float)val * IN_CAP_TO_GND / (float)(MAX_ADC_VALUE - val);
@@ -60,11 +60,11 @@ void loop(){
 
       Serial.print(F("Capacitance Value1 = "));
       if (capacitance > 1000.0){
-        Serial.print(capacitance / 1000.0, 2);
+        Serial.print(capacitance / 1000.0, 3);
         Serial.print(F(" uF"));
       }
       else{
-        Serial.print(capacitance, 2);
+        Serial.print(capacitance, 3);
         Serial.print(F(" nF"));
       }
 // Commented extra code that was not needed
@@ -76,5 +76,5 @@ void loop(){
       Serial.print(val);
       Serial.println(F(")"));
     }
-    while (millis() % 1000 != 0);    
+    delay(1000);    
 }
